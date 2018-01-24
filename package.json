@@ -1,18 +1,19 @@
 {
   "author": "Roman Shtylman <shtylman@gmail.com>",
-  "name": "localtunnel",
+  "name": "passthrough",
   "description": "expose localhost to the world",
   "version": "1.8.3",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/localtunnel/localtunnel.git"
+    "url": "git://github.com/amanjain/passthrough-client.git"
   },
   "dependencies": {
     "axios": "0.17.1",
     "debug": "2.6.8",
     "openurl": "1.1.1",
-    "yargs": "3.29.0"
+    "program": "^1.0.0",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "mocha": "~1.17.0"
@@ -21,7 +22,7 @@
     "test": "mocha --ui qunit --reporter list --timeout 10000 -- test/index.js"
   },
   "bin": {
-    "lt": "./bin/client"
+    "pt": "./bin/client"
   },
   "main": "./client.js"
 }

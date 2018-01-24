@@ -1,62 +1,62 @@
 #!/usr/bin/env node
+var program = require('commander');
 var lt_client = require('../client');
+var login = require('../login');
 var open_url = require('openurl');
+var os = require('os');
+var fs = require('fs');
+const uuidv1 = require('uuid/v1');
+const uuidv4 = require('uuid/v4');
 
-var argv = require('yargs')
-    .usage('Usage: $0 --port [num] <options>')
-    .option('h', {
-        alias: 'host',
-        describe: 'Upstream server providing forwarding',
-        default: 'https://localtunnel.me'
-    })
-    .option('s', {
-        alias: 'subdomain',
-        describe: 'Request this subdomain'
-    })
-    .option('l', {
-        alias: 'local-host',
-        describe: 'Tunnel traffic to this host instead of localhost, override Host header to this host'
-    })
-    .options('o', {
-        alias: 'open',
-        describe: 'opens url in your browser'
-    })
-    .option('p', {
-        alias: 'port',
-        describe: 'Internal http server port',
-    })
-    .require('port')
-    .help('help', 'Show this help and exit')
-    .version(require('../package').version)
-    .argv;
+program
+  .version(require('../package').version);
 
-if (typeof argv.port !== 'number') {
-    require('yargs').showHelp();
-    console.error('port must be a number');
-    process.exit(1);
-}
-
-var opt = {
-    host: argv.host,
-    port: argv.port,
-    local_host: argv['local-host'],
-    subdomain: argv.subdomain,
-};
-
-lt_client(opt.port, opt, function(err, tunnel) {
-    if (err) {
+program
+  .command('create <host> <port>')
+  .description('Pipes public traffic to local server')
+  .option("-h, --host <host>", "Upstream server providing forwarding")
+  .option("-l, --local-host <local-host>", "Tunnel traffic to this host instead of localhost, override Host header to this host")
+  .option("-s, --subdomain <subdomain>", "Request this subdomain")
+  .option("-o, --open <open>", "Opens url in your browser")
+  .option("-p, --port <port>", "Local http server port")
+  .action(function(host, port, options){
+    var opt = {
+      host: host,
+      port: parseInt(port),
+      local_host: options.localHost,
+      subdomain: options.subdomain
+    };
+    var open = options.open;
+    lt_client(opt.port, opt, function(err, tunnel) {
+      if (err) {
         throw err;
-    }
-
-    console.log('your url is: %s', tunnel.url);
-
-    if (argv.open) {
+      }
+      console.log('your url is: %s', tunnel.url);
+      if (open) {
         open_url.open(tunnel.url);
-    }
-
-    tunnel.on('error', function(err) {
+      }
+      tunnel.on('error', function(err) {
         throw err;
+      });
+    });
+  });
+
+program
+  .command('login <host>')
+  .description('Login to a google account')
+  .option("-h, --host <host>", "Upstream server providing forwarding")
+  .action(function(host){
+    var token = uuidv1() + "-" + uuidv4();
+    var home = os.homedir();
+    fs.writeFile(home + "/" + ".passthrough", token, function(err) {
+      if(err) {
+        console.log(err);
+      } else {
+        open_url.open(host + "/auth/google?token=" + token);
+      }
     });
 });
+
+program.parse(process.argv);
 
 // vim: ft=javascript
